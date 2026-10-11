@@ -108,7 +108,7 @@ async def test_unknown_contract_does_not_write(service: TimeManager, portal: Por
 async def test_duplicate_xml_id_is_a_conflict(service: TimeManager, portal: Portal) -> None:
     await service.create_remote_work(remote(), dry_run=False)
     portal.items[1250].append({**portal.items[1250][0], "id": 9999})
-    with pytest.raises(ConflictError, match="несколько записей"):
+    with pytest.raises(ConflictError, match="Multiple records"):
         await service.create_remote_work(remote(), dry_run=False)
     assert len(portal.adds) == 1
 
@@ -116,7 +116,7 @@ async def test_duplicate_xml_id_is_a_conflict(service: TimeManager, portal: Port
 async def test_changed_duplicate_is_not_overwritten(service: TimeManager, portal: Portal) -> None:
     await service.create_remote_work(remote(), dry_run=False)
     portal.items[1250][0][service.schema.remote_comment] = "changed on portal"
-    with pytest.raises(ConflictError, match="поля изменились"):
+    with pytest.raises(ConflictError, match="fields changed"):
         await service.create_remote_work(remote(), dry_run=False)
     assert len(portal.adds) == 1
 
@@ -131,7 +131,7 @@ async def test_verification_read_failure_preserves_known_success(settings: Setti
         manager = TimeManager(client)
         result = await manager.create_remote_work(remote(), dry_run=False)
         assert result.status == "created" and result.item_id is not None
-        assert any("повторное чтение" in warning for warning in result.warnings)
+        assert any("re-reading the item failed" in warning for warning in result.warnings)
         assert manager.journal.list_operations()[0]["state"] == "succeeded"
         assert (await manager.create_remote_work(remote(), dry_run=False)).status == "existing"
     assert len(portal.adds) == 1
@@ -149,7 +149,7 @@ async def test_portal_changes_after_add_are_reported(settings: Settings, portal:
         manager = TimeManager(client)
         result = await manager.create_remote_work(remote(), dry_run=False)
         assert result.status == "created" and result.workday_id == 123
-        assert any("поля отличаются" in warning for warning in result.warnings)
+        assert any("fields differ from the request" in warning for warning in result.warnings)
         assert manager.journal.list_operations()[0]["state"] == "succeeded"
     assert len(portal.adds) == 1
 
@@ -218,7 +218,7 @@ async def test_invalid_numeric_hours_on_portal_is_schema_error(service: TimeMana
             s.time_minutes: s.minute_zero_id,
         }
     ]
-    with pytest.raises(SchemaError, match="длительность"):
+    with pytest.raises(SchemaError, match="numeric duration"):
         await service.create_time_entry(entry(), dry_run=False)
     assert not portal.adds
 
@@ -227,7 +227,7 @@ async def test_nonexistent_local_time_is_rejected_before_add(settings: Settings,
     async with BitrixClient(
         replace(settings, timezone="Europe/Berlin"), transport=httpx.MockTransport(portal.respond)
     ) as client:
-        with pytest.raises(ValueError, match="не существует"):
+        with pytest.raises(ValueError, match="does not exist"):
             await TimeManager(client).create_remote_work(
                 remote(day="2026-03-29", start="02:30", end="04:00"), dry_run=False
             )

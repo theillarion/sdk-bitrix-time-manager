@@ -56,7 +56,7 @@ async def test_cursor_loop_and_unknown_methods(settings: Settings) -> None:
         return httpx.Response(200, json={"result": {"items": []}, "next": 0})
 
     async with BitrixClient(settings, transport=httpx.MockTransport(respond)) as client:
-        with pytest.raises(SchemaError, match="курсор"):
+        with pytest.raises(SchemaError, match="cursor"):
             await client.list_items(1208)
         with pytest.raises(WritesDisabledError):
             await client.call("crm.item.delete", {"id": 1})
@@ -122,12 +122,12 @@ async def test_offline_guard_rejects_real_transport(settings: Settings) -> None:
 @pytest.mark.parametrize(
     ("status", "content", "message"),
     [
-        (200, b"not JSON", "не JSON"),
-        (200, b"[]", "некорректный JSON"),
-        (200, b"null", "некорректный JSON"),
-        (200, b"{}", "не содержит result"),
-        (302, b'{"result": {}}', "HTTP-статус"),
-        (400, b'{"result": {}}', "HTTP-статус"),
+        (200, b"not JSON", "non-JSON"),
+        (200, b"[]", "invalid JSON"),
+        (200, b"null", "invalid JSON"),
+        (200, b"{}", "has no result"),
+        (302, b'{"result": {}}', "HTTP status"),
+        (400, b'{"result": {}}', "HTTP status"),
     ],
 )
 async def test_invalid_responses(settings: Settings, status: int, content: bytes, message: str) -> None:
@@ -186,7 +186,7 @@ async def test_malformed_list_response(settings: Settings, result: object) -> No
 async def test_invalid_page_cursor(settings: Settings, cursor: object) -> None:
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json={"result": {"items": []}, "next": cursor}))
     async with BitrixClient(settings, transport=transport) as client:
-        with pytest.raises(SchemaError, match="курсор"):
+        with pytest.raises(SchemaError, match="cursor"):
             await client.list_items(1208)
 
 

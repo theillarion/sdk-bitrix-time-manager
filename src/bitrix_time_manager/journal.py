@@ -42,7 +42,7 @@ class OperationJournal:
             )
             yield connection
         except sqlite3.OperationalError:
-            raise ConflictError("Журнал операций занят или недоступен. Проверьте BITRIX_STATE_PATH.") from None
+            raise ConflictError("The operation journal is busy or unavailable. Check BITRIX_STATE_PATH.") from None
         finally:
             connection.close()
 
@@ -56,7 +56,7 @@ class OperationJournal:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute("SELECT operation_id FROM request_keys WHERE key = ?", (key,)).fetchone()
             if row is not None and row["operation_id"] != operation_id:
-                raise ConflictError("Этот Idempotency-Key уже использован с другими параметрами.")
+                raise ConflictError("This Idempotency-Key has already been used with different parameters.")
             connection.execute("INSERT OR IGNORE INTO request_keys VALUES (?, ?)", (key, operation_id))
             connection.commit()
 
@@ -91,7 +91,7 @@ class OperationJournal:
     def set_state(self, operation_id: str, state: str) -> None:
         """Mark a known rejection or an ambiguous network outcome."""
         if state not in {"failed", "uncertain"}:
-            raise ValueError("Недопустимое состояние операции.")
+            raise ValueError("Invalid operation state.")
         with self._connection() as connection:
             connection.execute(
                 "UPDATE operations SET state=?, updated_at=? WHERE id=?", (state, self._now(), operation_id)
@@ -114,7 +114,7 @@ class OperationJournal:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute("SELECT state FROM operations WHERE id=?", (operation_id,)).fetchone()
             if row is None or row["state"] not in {"pending", "uncertain"}:
-                raise ConflictError("Освободить можно только существующую pending/uncertain операцию.")
+                raise ConflictError("Only an existing pending/uncertain operation can be released.")
             connection.execute(
                 "UPDATE operations SET state='failed', updated_at=? WHERE id=?", (self._now(), operation_id)
             )

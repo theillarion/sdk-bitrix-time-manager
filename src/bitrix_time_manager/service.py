@@ -54,7 +54,7 @@ class TimeManager:
         if value.astimezone(ZoneInfo("UTC")).astimezone(value.tzinfo).replace(tzinfo=None) != value.replace(
             tzinfo=None
         ):
-            raise ValueError("Указанное локальное время не существует в этом часовом поясе.")
+            raise ValueError("The requested local time does not exist in this timezone.")
         return value.isoformat(timespec="seconds")
 
     @staticmethod
@@ -73,7 +73,7 @@ class TimeManager:
         try:
             return Decimal(str(value))
         except InvalidOperation:
-            raise SchemaError("Bitrix вернул некорректную числовую длительность.") from None
+            raise SchemaError("Bitrix returned an invalid numeric duration.") from None
 
     def _url(self, kind: Kind, entity_type_id: int, item_id: int) -> str:
         section = "udalennaya_rabota" if kind == "remote_work" else "rabochiy_den"
@@ -101,7 +101,7 @@ class TimeManager:
         result = body.get("result")
         fields = result.get("fields") if isinstance(result, dict) else None
         if not isinstance(fields, dict):
-            raise SchemaError("Не удалось прочитать поля смарт-процесса.")
+            raise SchemaError("Failed to read smart-process fields.")
         expected: dict[str, str]
         s = self.schema
         if entity_type_id == s.day_type:
@@ -125,18 +125,18 @@ class TimeManager:
         elif entity_type_id == s.remote_type:
             expected = {s.remote_start: "datetime", s.remote_end: "datetime", s.remote_comment: "string"}
         else:
-            raise SchemaError("Неизвестный тип смарт-процесса.")
+            raise SchemaError("Unknown smart-process type.")
         for name, expected_type in expected.items():
             meta = fields.get(name)
             if not isinstance(meta, dict) or meta.get("type") != expected_type or meta.get("isReadOnly"):
-                raise SchemaError(f"Поле {name} отсутствует, изменило тип или доступно только для чтения.")
+                raise SchemaError(f"Field {name} is missing, changed its type, or is read-only.")
         if entity_type_id == s.time_type:
             choices = {str(item["ID"]): str(item["VALUE"]) for item in fields[s.time_minutes].get("items", [])}
             if choices.get(str(s.minute_zero_id)) != "0" or choices.get(str(s.minute_thirty_id)) != "30":
-                raise SchemaError("Справочник минут изменился; обновите PortalSchema.")
+                raise SchemaError("The minute dictionary changed; update PortalSchema.")
             allowed = fields[s.time_contract].get("settings", {})
             if any(allowed.get(f"DYNAMIC_{type_id}") != "Y" for type_id in s.contract_types):
-                raise SchemaError("Типы допустимых договоров изменились; обновите PortalSchema.")
+                raise SchemaError("Allowed contract types changed; update PortalSchema.")
         self._checked_types.add(entity_type_id)
 
     async def check_connection(self) -> dict[str, Any]:
@@ -144,7 +144,7 @@ class TimeManager:
         body = await self.client.call("profile")
         profile = body.get("result")
         if not isinstance(profile, dict) or int(profile.get("ID", 0)) != self.settings.user_id:
-            raise SchemaError("Вебхук принадлежит другому пользователю.")
+            raise SchemaError("The webhook belongs to a different user.")
         for entity_type_id in (self.schema.day_type, self.schema.time_type, self.schema.remote_type):
             await self._check_schema(entity_type_id)
         method = await self.client.call("method.get", {"name": "crm.item.add"})
@@ -155,7 +155,7 @@ class TimeManager:
             "schema_ok": True,
             "create_method": method["result"],
             "writes_enabled": self.settings.allow_writes,
-            "note": "Доступность метода не подтверждает права добавления и поведение роботов; запись не выполнялась.",
+            "note": "Method availability does not prove add permissions or robot behavior; no write was performed.",
         }
 
     async def get_workday(self, day: date) -> Workday | None:
@@ -168,9 +168,7 @@ class TimeManager:
             limit=2,
         )
         if len(items) > 1:
-            raise ConflictError(
-                f"За {day} найдены несколько рабочих дней. Сначала устраните неоднозначность на портале."
-            )
+            raise ConflictError(f"Multiple workdays found for {day}. Resolve the ambiguity on the portal first.")
         if not items:
             return None
         item = items[0]
@@ -178,7 +176,7 @@ class TimeManager:
             str(item.get(s.day_date, ""))[:10] != day.isoformat()
             or int(item.get(s.day_employee, 0)) != self.settings.user_id
         ):
-            raise SchemaError("Bitrix вернул рабочий день, не соответствующий фильтру.")
+            raise SchemaError("Bitrix returned a workday that does not match the filter.")
         return Workday(
             id=int(item["id"]),
             title=str(item["title"]),
@@ -193,7 +191,7 @@ class TimeManager:
         workday = await self.get_workday(day)
         if workday is None:
             raise NotFoundError(
-                f"Рабочий день за {day} не найден. Сначала создайте день или дождитесь роботов удалёнки."
+                f"Workday for {day} not found. Create the day first or wait for the remote-work robots."
             )
         return await self.client.list_items(
             self.schema.time_type,
@@ -239,7 +237,7 @@ class TimeManager:
     async def search_contracts(self, query: str, *, entity_type_id: int = 1298, limit: int = 20) -> list[ItemSummary]:
         """Search one allowed contract type; templates use entity_type_id=1298."""
         if entity_type_id not in self.schema.contract_types or not query.strip() or not 1 <= limit <= 100:
-            raise ValueError("Укажите непустой поиск, тип 1048/1052/1298 и limit от 1 до 100.")
+            raise ValueError("Provide a non-empty query, entity_type_id 1048/1052/1298, and a limit from 1 to 100.")
         items = await self.client.list_items(
             entity_type_id, filters={"%title": query.strip()}, select=["id", "title"], limit=limit
         )
@@ -266,7 +264,9 @@ class TimeManager:
         plan = self._plan("workday", spec, s.day_type, fields)
         plan = plan.model_copy(
             update={
-                "warnings": ["Ручной день создаётся с источником «Другое»; поведение роботов требует ручной проверки."]
+                "warnings": [
+                    "The manual day is created with source 'Other'; robot behavior requires manual verification."
+                ]
             }
         )
         return await self._finish(plan, spec, dry_run=dry_run, idempotency_key=idempotency_key)
@@ -279,7 +279,7 @@ class TimeManager:
         await self._check_schema(s.time_type)
         workday = await self.get_workday(spec.day)
         if workday is None:
-            raise NotFoundError(f"Рабочий день за {spec.day} не найден. Сначала создайте его отдельно.")
+            raise NotFoundError(f"Workday for {spec.day} not found. Create it separately first.")
         await self.client.get_item(spec.contract.entity_type_id, spec.contract.item_id)
         fields = {
             "categoryId": s.time_category,
@@ -308,8 +308,8 @@ class TimeManager:
         plan = plan.model_copy(
             update={
                 "warnings": [
-                    "Рабочий день привязывают роботы портала; утилита не создаёт второй день самостоятельно.",
-                    "Сохранение будущих дат и поведение роботов ещё требуют ручной проверки.",
+                    "Portal robots link the workday; the utility never creates a second day itself.",
+                    "Saving future dates and robot behavior still require manual verification.",
                 ]
             }
         )
@@ -323,10 +323,10 @@ class TimeManager:
             plan.entity_type_id, filters={"xmlId": plan.fields["xmlId"], "assignedById": self.settings.user_id}, limit=2
         )
         if len(ours) > 1:
-            raise ConflictError("На сервере несколько записей с идентификатором операции.")
+            raise ConflictError("Multiple records with this operation ID exist on the server.")
         if ours:
             if not self._core_matches(plan, ours[0]):
-                raise ConflictError("Запись этой операции уже существует, но её поля изменились на портале.")
+                raise ConflictError("A record for this operation already exists, but its fields changed on the portal.")
             return ours[0]
         if plan.kind == "workday":
             workday = await self.get_workday(spec.day)
@@ -335,7 +335,7 @@ class TimeManager:
             existing = await self.client.get_item(s.day_type, workday.id)
             if self._core_matches(plan, existing):
                 return existing
-            raise ConflictError(f"Рабочий день за {spec.day} уже существует с другими параметрами.")
+            raise ConflictError(f"A workday for {spec.day} already exists with different parameters.")
         if plan.kind == "time_entry":
             for item in await self.list_time_entries(spec.day):
                 if self._core_matches(plan, item):
@@ -357,7 +357,7 @@ class TimeManager:
             if self._core_matches(plan, item):
                 return item
             if not item.get(s.remote_end) or int(item["id"]) in overlapping_ids:
-                raise ConflictError("Уже есть пересекающаяся удалённая работа с другими параметрами.")
+                raise ConflictError("An overlapping remote work with different parameters already exists.")
         return None
 
     def _core_matches(self, plan: OperationResult, item: dict[str, Any]) -> bool:
@@ -408,9 +408,9 @@ class TimeManager:
         idempotency_key: str | None,
     ) -> OperationResult:
         if not dry_run and not self.settings.allow_writes:
-            raise WritesDisabledError("Запись отключена. Включите --apply или BITRIX_ALLOW_WRITES=true.")
+            raise WritesDisabledError("Writes are disabled. Enable --apply or set BITRIX_ALLOW_WRITES=true.")
         if idempotency_key is not None and not 1 <= len(idempotency_key) <= 200:
-            raise ValueError("Idempotency-Key должен содержать от 1 до 200 символов.")
+            raise ValueError("Idempotency-Key must be between 1 and 200 characters.")
         duplicate = await self._find_duplicate(plan, spec)
         if dry_run:
             return self._with_item(plan, duplicate, "preview") if duplicate else plan
@@ -428,14 +428,14 @@ class TimeManager:
         if saved:
             # Do not recreate a manually deleted record from a completed operation.
             raise ConflictError(
-                "Операция уже завершалась, но её запись больше не найдена или была изменена. Проверьте портал."
+                "This operation completed before, but its record is now missing or changed. Check the portal."
             )
         try:
             body = await self.client.call("crm.item.add", {"entityTypeId": plan.entity_type_id, "fields": plan.fields})
             payload = body.get("result")
             item = payload.get("item") if isinstance(payload, dict) else None
             if not isinstance(item, dict) or not str(item.get("id", "")).isdigit() or int(item["id"]) <= 0:
-                raise TransportError("Создание вернуло ответ без ID; результат записи неизвестен.")
+                raise TransportError("Creation returned a response without an ID; the write outcome is unknown.")
         except BitrixAPIError as error:
             self.journal.set_state(plan.operation_id, "uncertain" if error.outcome_unknown else "failed")
             if error.outcome_unknown:
@@ -460,17 +460,17 @@ class TimeManager:
                     update={
                         "warnings": [
                             *result.warnings,
-                            "После сохранения поля отличаются от запроса; проверьте карточку и роботов.",
+                            "After saving, fields differ from the request; check the item and robots.",
                         ]
                     }
                 )
         except TimeManagerError:
             result = result.model_copy(
-                update={"warnings": [*result.warnings, "ID создания получен, но повторное чтение карточки не удалось."]}
+                update={"warnings": [*result.warnings, "The creation ID was received, but re-reading the item failed."]}
             )
         if plan.kind == "remote_work" and result.workday_id is None:
             result = result.model_copy(
-                update={"warnings": [*result.warnings, "Связанный рабочий день пока не появился; проверьте его позже."]}
+                update={"warnings": [*result.warnings, "The linked workday has not appeared yet; check it later."]}
             )
         self.journal.complete(
             plan.operation_id, plan.entity_type_id, plan.fields["xmlId"], result.model_dump(mode="json")

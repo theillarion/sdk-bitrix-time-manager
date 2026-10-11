@@ -57,9 +57,9 @@ class BitrixClient:
         """
         read_only = method in READ_METHODS
         if not read_only and method != "crm.item.add":
-            raise WritesDisabledError("Этот SDK разрешает только чтение и создание записей.")
+            raise WritesDisabledError("This SDK allows read and create operations only.")
         if not read_only and not self.settings.allow_writes:
-            raise WritesDisabledError("Запись отключена. Включите --apply или BITRIX_ALLOW_WRITES=true.")
+            raise WritesDisabledError("Writes are disabled. Enable --apply or set BITRIX_ALLOW_WRITES=true.")
         attempts = self.settings.read_retries + 1 if read_only else 1
         for attempt in range(attempts):
             try:
@@ -70,16 +70,16 @@ class BitrixClient:
                 if attempt + 1 < attempts:
                     await asyncio.sleep(0.3 * 2**attempt)
                     continue
-                raise TransportError("Не удалось получить ответ Bitrix; проверьте сеть и VPN.") from None
+                raise TransportError("Failed to get a response from Bitrix; check network and VPN.") from None
             if read_only and (response.status_code == 429 or response.status_code >= 500) and attempt + 1 < attempts:
                 await asyncio.sleep(0.3 * 2**attempt)
                 continue
             try:
                 body = response.json()
             except ValueError:
-                raise TransportError(f"Bitrix вернул не JSON (HTTP {response.status_code}).") from None
+                raise TransportError(f"Bitrix returned non-JSON (HTTP {response.status_code}).") from None
             if not isinstance(body, dict):
-                raise TransportError("Bitrix вернул некорректный JSON.")
+                raise TransportError("Bitrix returned invalid JSON.")
             if "error" in body:
                 api_code = str(body["error"])
                 if read_only and api_code == "QUERY_LIMIT_EXCEEDED" and attempt + 1 < attempts:
@@ -87,13 +87,13 @@ class BitrixClient:
                     continue
                 raise BitrixAPIError(
                     api_code,
-                    str(body.get("error_description", "Ошибка API")),
+                    str(body.get("error_description", "API error")),
                     outcome_unknown=response.status_code >= 500,
                 )
             if response.status_code >= 400 or response.status_code < 200 or response.status_code >= 300:
-                raise TransportError(f"Неожиданный HTTP-статус Bitrix: {response.status_code}.")
+                raise TransportError(f"Unexpected Bitrix HTTP status: {response.status_code}.")
             if "result" not in body:
-                raise TransportError("Ответ Bitrix не содержит result.")
+                raise TransportError("The Bitrix response has no result.")
             return body
         raise AssertionError("Unreachable retry state")
 
@@ -102,7 +102,7 @@ class BitrixClient:
         body = await self.call("crm.item.get", {"entityTypeId": entity_type_id, "id": item_id})
         result = body.get("result")
         if not isinstance(result, dict) or not isinstance(result.get("item"), dict):
-            raise SchemaError("crm.item.get вернул неожиданный формат.")
+            raise SchemaError("crm.item.get returned an unexpected format.")
         return dict(result["item"])
 
     async def list_items(
@@ -115,13 +115,13 @@ class BitrixClient:
     ) -> list[dict[str, Any]]:
         """Read list pages until exhaustion or a requested limit, detecting bad cursors."""
         if limit is not None and limit < 1:
-            raise ValueError("limit должен быть положительным.")
+            raise ValueError("limit must be positive.")
         items: list[dict[str, Any]] = []
         start = 0
         seen: set[int] = set()
         while True:
             if start in seen:
-                raise SchemaError("Bitrix повторил курсор страницы.")
+                raise SchemaError("Bitrix repeated the page cursor.")
             seen.add(start)
             params: dict[str, Any] = {
                 "entityTypeId": entity_type_id,
@@ -133,10 +133,10 @@ class BitrixClient:
             body = await self.call("crm.item.list", params)
             result = body.get("result")
             if not isinstance(result, dict) or not isinstance(result.get("items"), list):
-                raise SchemaError("crm.item.list вернул неожиданный формат.")
+                raise SchemaError("crm.item.list returned an unexpected format.")
             page = result["items"]
             if any(not isinstance(item, dict) for item in page):
-                raise SchemaError("crm.item.list вернул некорректный элемент.")
+                raise SchemaError("crm.item.list returned an invalid item.")
             items.extend(page)
             if limit is not None and len(items) >= limit:
                 return items[:limit]
@@ -145,4 +145,4 @@ class BitrixClient:
             try:
                 start = int(body["next"])
             except (TypeError, ValueError):
-                raise SchemaError("Некорректный курсор страницы Bitrix.") from None
+                raise SchemaError("Invalid Bitrix page cursor.") from None

@@ -25,14 +25,14 @@ class DayInterval(APIModel):
     def local_time(cls, value: time) -> time:
         """Require local clock times; the configured timezone supplies the offset."""
         if value.tzinfo is not None or value.second or value.microsecond:
-            raise ValueError("Время должно быть локальным, без секунд и часового пояса, например 09:00.")
+            raise ValueError("Time must be local, without seconds or a timezone, e.g. 09:00.")
         return value
 
     @model_validator(mode="after")
     def ordered_interval(self) -> Self:
         """Reject zero, negative and overnight intervals."""
         if self.end <= self.start:
-            raise ValueError("Окончание должно быть позже начала в пределах одного дня.")
+            raise ValueError("End must be later than start within a single day.")
         return self
 
 
@@ -71,14 +71,14 @@ class TimeEntryCreate(APIModel):
         """Normalize whitespace at the boundaries and reject a blank description."""
         value = value.strip()
         if not value:
-            raise ValueError("Описание не должно быть пустым.")
+            raise ValueError("Description must not be blank.")
         return value
 
     @model_validator(mode="after")
     def positive_duration(self) -> Self:
         """Require a positive duration not exceeding one calendar day."""
         if not 0 < self.hours * 60 + self.minutes <= 1440:
-            raise ValueError("Длительность должна быть больше нуля и не превышать 24 часа.")
+            raise ValueError("Duration must be greater than zero and must not exceed 24 hours.")
         return self
 
 

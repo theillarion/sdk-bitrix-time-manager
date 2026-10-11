@@ -69,7 +69,7 @@ class UncertainWriteError(TimeManagerError):
     def __init__(self, operation_id: str) -> None:
         self.operation_id = operation_id
         super().__init__(
-            f"Результат записи неизвестен (операция {operation_id}). "
-            "Повторите тот же запрос для сверки. Если запись не найдена, сначала проверьте портал вручную; "
-            "автоматическая повторная отправка заблокирована."
+            f"Write outcome is unknown (operation {operation_id}). "
+            "Repeat the same request to reconcile. If the record is missing, check the portal manually first; "
+            "automatic resending is blocked."
         )

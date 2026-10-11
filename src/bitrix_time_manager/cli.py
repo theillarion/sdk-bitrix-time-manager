@@ -24,25 +24,25 @@ from bitrix_time_manager.journal import OperationJournal
 
 def parser() -> argparse.ArgumentParser:
     """Build the CLI with explicit --apply for every mutating command."""
-    root = argparse.ArgumentParser(description="Time-менеджер Bitrix: чтение и предварительная проверка создания.")
-    root.add_argument("--env-file", default=".env", help="Файл настроек, по умолчанию .env")
+    root = argparse.ArgumentParser(description="Bitrix Time-manager: reads and create previews.")
+    root.add_argument("--env-file", default=".env", help="Settings file, defaults to .env")
     commands = root.add_subparsers(dest="command", required=True)
-    commands.add_parser("check", help="Проверить вебхук и схему без записи")
+    commands.add_parser("check", help="Check webhook and schema without writes")
     for name, help_text in (
-        ("day", "Посмотреть рабочий день"),
-        ("entries", "Учет времени за день"),
-        ("remote-list", "Удалённая работа за день"),
+        ("day", "Show a workday"),
+        ("entries", "Time entries for a day"),
+        ("remote-list", "Remote work for a day"),
     ):
         cmd = commands.add_parser(name, help=help_text)
         cmd.add_argument("--date", type=date.fromisoformat, required=True)
-    contracts = commands.add_parser("contracts", help="Найти договор или шаблон по названию")
+    contracts = commands.add_parser("contracts", help="Find a contract or template by title")
     contracts.add_argument("query")
     contracts.add_argument("--type", type=int, choices=(1048, 1052, 1298), default=1298)
     contracts.add_argument("--limit", type=int, default=20)
     for name in ("workday", "remote", "entry"):
-        cmd = commands.add_parser(name, help=f"Создание {name}; без --apply только предварительная проверка")
+        cmd = commands.add_parser(name, help=f"Create {name}; without --apply this is a preview only")
         cmd.add_argument("--date", type=date.fromisoformat, required=True)
-        cmd.add_argument("--apply", action="store_true", help="Отправить одну операцию создания в Bitrix")
+        cmd.add_argument("--apply", action="store_true", help="Send one create operation to Bitrix")
         cmd.add_argument("--idempotency-key")
         if name == "entry":
             cmd.add_argument("--contract-type", type=int, choices=(1048, 1052, 1298), required=True)
@@ -54,8 +54,8 @@ def parser() -> argparse.ArgumentParser:
             cmd.add_argument("--from", dest="start", type=time.fromisoformat, required=True)
             cmd.add_argument("--to", dest="end", type=time.fromisoformat, required=True)
             cmd.add_argument("--comment", default="")
-    commands.add_parser("journal", help="Состояния операций в локальном журнале")
-    resolve = commands.add_parser("resolve", help="Разрешить повтор после ручной проверки отсутствия записи")
+    commands.add_parser("journal", help="Local operation journal states")
+    resolve = commands.add_parser("resolve", help="Allow a retry after a manual no-record check")
     resolve.add_argument("operation_id")
     resolve.add_argument("--confirmed-not-created", action="store_true", required=True)
     return root
@@ -69,7 +69,7 @@ async def run(args: argparse.Namespace) -> Any:
         return journal.list_operations()
     if args.command == "resolve":
         journal.confirm_not_created(args.operation_id)
-        return {"operation_id": args.operation_id, "state": "failed", "note": "Повтор разрешён; запись не выполнялась."}
+        return {"operation_id": args.operation_id, "state": "failed", "note": "Retry allowed; nothing was written."}
     async with BitrixClient(settings) as client:
         service = TimeManager(client, journal)
         if args.command == "check":
@@ -126,7 +126,7 @@ def main() -> int:
         )
         return 2
     except KeyboardInterrupt:
-        print("Операция прервана; при отправке проверьте journal перед повтором.", file=sys.stderr)
+        print("Operation interrupted; check the journal before retrying a send.", file=sys.stderr)
         return 130
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

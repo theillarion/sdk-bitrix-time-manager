@@ -70,13 +70,13 @@ class Settings:
             or not re.fullmatch(r"/rest/[1-9]\d*/[A-Za-z0-9_-]+/", parts.path)
             or "REPLACE" in parts.path.upper()
         ):
-            raise ConfigurationError("Нужен базовый HTTPS URL вебхука вида https://host/rest/user_id/secret/.")
+            raise ConfigurationError("A base HTTPS webhook URL like https://host/rest/user_id/secret/ is required.")
         try:
             ZoneInfo(self.timezone)
         except ZoneInfoNotFoundError:
-            raise ConfigurationError("Неизвестный часовой пояс BITRIX_TIMEZONE.") from None
+            raise ConfigurationError("Unknown BITRIX_TIMEZONE.") from None
         if not 0 < self.timeout <= 120 or not 0 <= self.read_retries <= 5:
-            raise ConfigurationError("Timeout должен быть 0–120 секунд, read_retries — 0–5.")
+            raise ConfigurationError("Timeout must be 0-120 seconds and read_retries 0-5.")
 
     @property
     def user_id(self) -> int:
@@ -96,15 +96,15 @@ class Settings:
             load_dotenv(env_file, override=False)
         webhook = os.getenv("BITRIX_WEBHOOK_URL", "").strip()
         if not webhook:
-            raise ConfigurationError("Задайте BITRIX_WEBHOOK_URL в окружении или локальном .env.")
+            raise ConfigurationError("Set BITRIX_WEBHOOK_URL in the environment or a local .env.")
         raw_writes = os.getenv("BITRIX_ALLOW_WRITES", "false").lower()
         if raw_writes not in {"true", "false", "1", "0"}:
-            raise ConfigurationError("BITRIX_ALLOW_WRITES должен быть true или false.")
+            raise ConfigurationError("BITRIX_ALLOW_WRITES must be true or false.")
         try:
             timeout = float(os.getenv("BITRIX_TIMEOUT", "20"))
             retries = int(os.getenv("BITRIX_READ_RETRIES", "2"))
         except ValueError:
-            raise ConfigurationError("BITRIX_TIMEOUT и BITRIX_READ_RETRIES должны быть числами.") from None
+            raise ConfigurationError("BITRIX_TIMEOUT and BITRIX_READ_RETRIES must be numbers.") from None
         return cls(
             webhook_url=SecretStr(webhook),
             timezone=os.getenv("BITRIX_TIMEZONE", "Europe/Moscow"),

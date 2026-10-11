@@ -72,7 +72,7 @@ def test_sqlite_lock_is_reported_without_overwriting_state(tmp_path: Path) -> No
     connection = sqlite3.connect(path)
     try:
         connection.execute("BEGIN IMMEDIATE")
-        with pytest.raises(ConflictError, match="занят"):
+        with pytest.raises(ConflictError, match="busy or unavailable"):
             journal.reserve("second", 1250, "xml-second")
     finally:
         connection.rollback()

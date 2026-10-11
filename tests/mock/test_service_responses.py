@@ -20,7 +20,7 @@ async def test_connection_rejects_wrong_or_missing_owner(settings: Settings, pro
         return httpx.Response(200, json={"result": profile})
 
     async with BitrixClient(settings, transport=httpx.MockTransport(respond)) as client:
-        with pytest.raises(SchemaError, match="пользователю"):
+        with pytest.raises(SchemaError, match="different user"):
             await TimeManager(client).check_connection()
     assert len(requests) == 1
 
@@ -30,7 +30,7 @@ async def test_unreadable_schema(settings: Settings, result: object) -> None:
     transport = httpx.MockTransport(lambda request: httpx.Response(200, json={"result": result}))
     async with BitrixClient(settings, transport=transport) as client:
         spec = RemoteWorkCreate.model_validate({"day": "2026-10-09", "start": "09:00", "end": "18:00"})
-        with pytest.raises(SchemaError, match="поля"):
+        with pytest.raises(SchemaError, match="Failed to read smart-process fields"):
             await TimeManager(client).create_remote_work(spec)
 
 
@@ -70,7 +70,7 @@ async def test_schema_changes_block_creation(
 
 async def test_ambiguous_workday_is_rejected(service: TimeManager, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(service.client, "list_items", AsyncMock(return_value=[{"id": 1}, {"id": 2}]))
-    with pytest.raises(ConflictError, match="несколько рабочих дней"):
+    with pytest.raises(ConflictError, match="Multiple workdays"):
         await service.get_workday(date(2026, 10, 5))
 
 
@@ -83,7 +83,7 @@ async def test_workday_filter_mismatch_is_rejected(
         "2026-10-06" if wrong == "date" else 501
     )
     monkeypatch.setattr(service.client, "list_items", AsyncMock(return_value=[item]))
-    with pytest.raises(SchemaError, match="фильтру"):
+    with pytest.raises(SchemaError, match="match the filter"):
         await service.get_workday(date(2026, 10, 5))
 
 
