@@ -17,6 +17,7 @@ from bitrix_time_manager import (
     TimeEntryCreate,
     TimeManager,
     WorkdayCreate,
+    __version__,
 )
 from bitrix_time_manager.errors import TimeManagerError, redact
 from bitrix_time_manager.journal import OperationJournal
@@ -24,7 +25,8 @@ from bitrix_time_manager.journal import OperationJournal
 
 def parser() -> argparse.ArgumentParser:
     """Build the CLI with explicit --apply for every mutating command."""
-    root = argparse.ArgumentParser(description="Bitrix Time-manager: reads and create previews.")
+    root = argparse.ArgumentParser(prog="bitrix-time", description="Bitrix Time-manager: reads and create previews.")
+    root.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     root.add_argument("--env-file", default=".env", help="Settings file, defaults to .env")
     commands = root.add_subparsers(dest="command", required=True)
     commands.add_parser("check", help="Check webhook and schema without writes")

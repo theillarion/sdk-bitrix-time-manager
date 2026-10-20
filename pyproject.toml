@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitrix-time-manager"
-version = "0.1.0"
 description = "Async Python SDK and CLI for the Bitrix24 Time-manager smart processes"
 readme = "README.md"
 requires-python = ">=3.11"
+dynamic = ["version"]
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Illarion", email = "pro100illarion@gmail.com" }]
@@ -40,6 +40,9 @@ bitrix-time = "bitrix_time_manager.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = { attr = "bitrix_time_manager.__version__" }
 
 [tool.setuptools.package-data]
 bitrix_time_manager = ["py.typed"]

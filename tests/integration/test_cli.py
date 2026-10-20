@@ -219,6 +219,15 @@ def test_cli_in_new_process_reads_and_resolves_persistent_journal(tmp_path: Path
     assert journal.list_operations()[0]["state"] == "failed"
 
 
+def test_cli_version_flag_prints_package_version(capsys: pytest.CaptureFixture[str]) -> None:
+    from bitrix_time_manager import __version__
+
+    with pytest.raises(SystemExit) as caught:
+        cli.parser().parse_args(["--version"])
+    assert caught.value.code == 0
+    assert capsys.readouterr().out.strip() == f"bitrix-time {__version__}"
+
+
 def test_module_entrypoint_help_in_subprocess(tmp_path: Path) -> None:
     result = subprocess.run(
         [sys.executable, "-m", "bitrix_time_manager", "--help"],
