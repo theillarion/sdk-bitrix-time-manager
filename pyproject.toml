@@ -28,9 +28,9 @@ classifiers = [
 dependencies = ["httpx>=0.28,<0.29", "pydantic>=2.10,<3", "python-dotenv>=1,<2"]
 
 [project.urls]
-Homepage = "https://github.com/theillarion/sdk-python-bitrix-time-manager"
-Repository = "https://github.com/theillarion/sdk-python-bitrix-time-manager"
-Issues = "https://github.com/theillarion/sdk-python-bitrix-time-manager/issues"
+Homepage = "https://github.com/theillarion/sdk-bitrix-time-manager"
+Repository = "https://github.com/theillarion/sdk-bitrix-time-manager"
+Issues = "https://github.com/theillarion/sdk-bitrix-time-manager/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.9,<1", "mypy>=1.14,<2"]
