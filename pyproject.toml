@@ -1,14 +1,36 @@
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitrix-time-manager"
 version = "0.1.0"
-description = "Async Python SDK and CLI for Bitrix24 Time-manager"
+description = "Async Python SDK and CLI for the Bitrix24 Time-manager smart processes"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Illarion", email = "pro100illarion@gmail.com" }]
+keywords = ["bitrix24", "bitrix", "crm", "time-tracking", "asyncio"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Scheduling",
+    "Typing :: Typed",
+]
 dependencies = ["httpx>=0.28,<0.29", "pydantic>=2.10,<3", "python-dotenv>=1,<2"]
+
+[project.urls]
+Homepage = "https://github.com/theillarion/sdk-python-bitrix-time-manager"
+Repository = "https://github.com/theillarion/sdk-python-bitrix-time-manager"
+Issues = "https://github.com/theillarion/sdk-python-bitrix-time-manager/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "pytest-asyncio>=0.25,<2", "ruff>=0.9,<1", "mypy>=1.14,<2"]
@@ -18,6 +40,9 @@ bitrix-time = "bitrix_time_manager.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+bitrix_time_manager = ["py.typed"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

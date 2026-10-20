@@ -1,4 +1,4 @@
-"""Python API for Bitrix24 Time-manager."""
+"""Python API for the Bitrix24 Time-manager."""
 
 from bitrix_time_manager.client import BitrixClient
 from bitrix_time_manager.config import PortalSchema, Settings

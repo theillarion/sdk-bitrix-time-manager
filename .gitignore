@@ -13,3 +13,4 @@ build/
 dist/
 reports/
 .coverage*
+docs/security-audit/
