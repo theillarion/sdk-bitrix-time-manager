@@ -7,10 +7,22 @@
 не гарантируется: ломающие изменения возможны с ростом minor-версии.
 
 Единственный источник версии — `__version__` в `src/bitrix_time_manager/__init__.py`;
-`pyproject.toml` подхватывает её автоматически. Выпуск: обновить `__version__`, добавить
-запись в этот файл, закоммитить и поставить git-тег `vX.Y.Z`.
+`pyproject.toml` подхватывает её автоматически. Все изменения по ходу коммитов
+фиксируются в секции `[Unreleased]`; она превращается в релиз `[X.Y.Z] - дата`
+только по явной команде владельца: обновить `__version__`, переименовать секцию
+и поставить git-тег `vX.Y.Z`.
 
 ## [Unreleased]
+
+### Added
+
+- `AGENTS.md` и роли агентов (`docs/agents/*/ROLE.md`): пайплайн
+  planner → implementer → tester → verifier, команды и границы.
+
+### Changed
+
+- Документация и тесты используют только нейтральные значения вместо
+  идентификаторов конкретного портала.
 
 ## [0.1.0] - 2026-10-20
 
@@ -32,3 +44,6 @@
 - Python 3.11–3.14, зависимости httpx и pydantic, строгая типизация (`py.typed`).
 - Тесты уровней unit/mock/integration, опциональные live-тесты и CI на GitHub Actions.
 - Лицензия MIT.
+
+[Unreleased]: https://github.com/theillarion/sdk-bitrix-time-manager/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/theillarion/sdk-bitrix-time-manager/releases/tag/v0.1.0
