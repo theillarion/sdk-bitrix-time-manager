@@ -8,9 +8,8 @@ Bitrix24 через REST-вебхук владельца: все операци�
 [![release](https://img.shields.io/github/v/release/theillarion/sdk-bitrix-time-manager?include_prereleases&label=release)](https://github.com/theillarion/sdk-bitrix-time-manager/releases)
 [![python](https://img.shields.io/badge/python-%E2%89%A53.11-007ec6)](pyproject.toml)
 [![License: MIT](https://img.shields.io/github/license/theillarion/sdk-bitrix-time-manager)](LICENSE)
+[![stars](https://img.shields.io/github/stars/theillarion/sdk-bitrix-time-manager)](https://github.com/theillarion/sdk-bitrix-time-manager)
 [![tests](https://github.com/theillarion/sdk-bitrix-time-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/theillarion/sdk-bitrix-time-manager/actions/workflows/tests.yml)
-[![code style: ruff](https://img.shields.io/badge/code%20style-ruff-00878F)](https://docs.astral.sh/ruff/)
-[![typing: mypy strict](https://img.shields.io/badge/typing-mypy%20strict-6C757D)](https://mypy-lang.org/)
 
 </div>
 

@@ -18,6 +18,12 @@
 
 - Шапка с бейджами в README.md.
 
+### Changed
+
+- README, шапка: добавлен бейдж `stars`, убраны бейджи
+  `code style: ruff` и `typing: mypy strict`; итоговый набор:
+  release, python, license, stars, tests.
+
 ## [0.1.1] - 2026-10-22
 
 ### Added
