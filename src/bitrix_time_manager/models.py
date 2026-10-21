@@ -52,7 +52,11 @@ class ContractRef(APIModel):
 
     @property
     def crm_value(self) -> str:
-        """Encode the dynamic CRM reference as used by the portal, e.g. T512_123."""
+        """Encode the dynamic CRM reference as used by the portal.
+
+        Format: ``T{entity_type_id:X}_{item_id}`` where the prefix is the
+        hexadecimal entity type id, e.g. ``T512_123`` for type 1298, item 123.
+        """
         return f"T{self.entity_type_id:X}_{self.item_id}"
 
 
