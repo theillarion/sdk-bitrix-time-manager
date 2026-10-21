@@ -50,7 +50,6 @@ python -m pip check
 | TR-04, TR-06, TR-08; UC-02, UC-03, UC-05 | [test_service.py](../tests/test_service.py): `test_readonly_check_date_and_preview` | Проверка схемы, чтение дня и preview без добавления/БД |
 | TR-04, TR-09; UC-02, UC-05 | [test_service.py](../tests/test_service.py): `test_write_gate_and_schema_drift` | Запрет записи и несовместимые поля |
 | TR-11, TR-13; UC-07, UC-09 | [test_service.py](../tests/test_service.py): `test_time_entry_encoding_and_repeat`, `test_missing_day_does_not_create_implicitly` | Связи/минуты/договор, повтор и отсутствие дня |
-| TR-10; UC-06 | [test_service.py](../tests/test_service.py): `test_manual_duplicate_and_conflicting_workday`, `test_new_manual_workday_is_created_with_correct_origin` | Ручной день, источник, совпадение и конфликт |
 | TR-12; UC-08 | [test_service.py](../tests/test_service.py): `test_remote_overlap_and_nonoverlap`, `test_manual_remote_duplicate_and_unfinished_interval` | Последовательные интервалы и незавершённая удалёнка |
 | TR-13; UC-09 | [test_service.py](../tests/test_service.py): `test_reusing_key_for_other_payload_is_conflict` | Один key не допускает другие данные |
 | TR-14, TR-15; UC-09–UC-11 | [test_service.py](../tests/test_service.py): `test_uncertain_write_recovers_from_server_without_retry`, `test_uncertain_and_deleted_records_not_recreated`, `test_rejected_add_and_malformed_result` | Потеря ответа, сверка, освобождение, исчезновение карточки, явный отказ и плохой результат |
@@ -101,7 +100,7 @@ python -m pip check
 
 ## CHK-05. Ручная сверка поддерживаемого портала
 
-Связь: TR-04, TR-10–TR-12, LIM-05.
+Связь: TR-04, TR-11–TR-12, LIM-05.
 
 Проверка портала выполняется отдельно от автоматических тестов. Сначала только
 чтение. Запись — лишь для конкретной выбранной операции с явным разрешением

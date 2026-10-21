@@ -16,7 +16,6 @@ from bitrix_time_manager import (
     Settings,
     TimeEntryCreate,
     TimeManager,
-    WorkdayCreate,
     __version__,
 )
 from bitrix_time_manager.errors import TimeManagerError, redact
@@ -41,7 +40,7 @@ def parser() -> argparse.ArgumentParser:
     contracts.add_argument("query")
     contracts.add_argument("--type", type=int, choices=(1048, 1052, 1298), default=1298)
     contracts.add_argument("--limit", type=int, default=20)
-    for name in ("workday", "remote", "entry"):
+    for name in ("remote", "entry"):
         cmd = commands.add_parser(name, help=f"Create {name}; without --apply this is a preview only")
         cmd.add_argument("--date", type=date.fromisoformat, required=True)
         cmd.add_argument("--apply", action="store_true", help="Send one create operation to Bitrix")
@@ -107,10 +106,7 @@ async def run(args: argparse.Namespace) -> Any:
             outcome = await service.create_time_entry(spec, **options)
         else:
             interval = {"day": args.date, "start": args.start, "end": args.end, "comment": args.comment}
-            if args.command == "remote":
-                outcome = await service.create_remote_work(RemoteWorkCreate.model_validate(interval), **options)
-            else:
-                outcome = await service.create_workday(WorkdayCreate.model_validate(interval), **options)
+            outcome = await service.create_remote_work(RemoteWorkCreate.model_validate(interval), **options)
         return outcome.model_dump(mode="json")
 
 

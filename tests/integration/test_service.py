@@ -6,7 +6,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
-from bitrix_time_manager import BitrixClient, RemoteWorkCreate, Settings, TimeEntryCreate, TimeManager, WorkdayCreate
+from bitrix_time_manager import BitrixClient, RemoteWorkCreate, Settings, TimeEntryCreate, TimeManager
 from bitrix_time_manager.errors import (
     BitrixAPIError,
     ConflictError,
@@ -285,17 +285,6 @@ async def test_missing_day_does_not_create_implicitly(service: TimeManager, port
 
 
 @pytest.mark.asyncio
-async def test_manual_duplicate_and_conflicting_workday(service: TimeManager, portal: Portal) -> None:
-    spec = WorkdayCreate.model_validate({"day": "2026-10-05", "start": "09:00", "end": "18:00"})
-    result = await service.create_workday(spec, dry_run=False)
-    assert result.status == "existing" and result.item_id == 123456
-    assert not portal.adds
-    with pytest.raises(ConflictError):
-        await service.create_workday(spec.model_copy(update={"comment": "Different"}), dry_run=False)
-    assert not portal.adds
-
-
-@pytest.mark.asyncio
 async def test_remote_overlap_and_nonoverlap(service: TimeManager, portal: Portal) -> None:
     first = await service.create_remote_work(remote(start="09:00", end="12:00"), dry_run=False)
     assert first.status == "created"
@@ -437,16 +426,6 @@ async def test_manual_remote_duplicate_and_unfinished_interval(service: TimeMana
     with pytest.raises(ConflictError):
         await service.create_remote_work(remote(), dry_run=False)
     assert not portal.adds
-
-
-@pytest.mark.asyncio
-async def test_new_manual_workday_is_created_with_correct_origin(service: TimeManager, portal: Portal) -> None:
-    spec = WorkdayCreate.model_validate({"day": "2026-10-12", "start": "09:00", "end": "18:00"})
-    result = await service.create_workday(spec, dry_run=False)
-    assert result.status == "created" and result.workday_id == result.item_id
-    fields = portal.adds[0]["fields"]
-    assert fields[service.schema.day_source] == 192
-    assert fields[service.schema.day_kind] == 351 and fields[service.schema.day_employee] == 500
 
 
 @pytest.mark.asyncio

@@ -11,14 +11,14 @@
 ## Компоненты и ответственность
 
 - `client.py` — транспорт: whitelist read-методов (client.py:13), запись — только `crm.item.add` и без ретраев (client.py:59), повторы только для чтения, маскирование секретов в логах (client.py:19).
-- `service.py` — `TimeManager`: сверка владельца и схемы через `profile`/`method.get` (service.py:150); три операции с `dry_run=True` по умолчанию (service.py:249,275,296); identity операции — sha256 от портала, пользователя и параметров (service.py:91); фактическая отправка — единственный `crm.item.add` (service.py:434).
+- `service.py` — `TimeManager`: сверка владельца и схемы через `profile`/`method.get` (service.py:149); две операции с `dry_run=True` по умолчанию (service.py:247,268); identity операции — sha256 от портала, пользователя и параметров (service.py:90); фактическая отправка — единственный `crm.item.add` (service.py:390).
 - `journal.py` — SQLite-журнал: `reserve` резервирует операцию или возвращает завершенную (journal.py:63-75), состояние `pending/uncertain` блокирует повтор (journal.py:71), `resolve` допустим только для pending/uncertain (journal.py:116-117).
 - `config.py` — `Settings` (HTTPS-вебхук, `user_id` из URL, timeout 0–120 с, read_retries 0–5, `allow_writes=False`: config.py:55-57,78-79) и `PortalSchema` — схема конкретного портала (config.py:17,20,39,45).
 - `models.py` — pydantic-контракты операций; `errors.py` — иерархия ошибок и `redact` (errors.py:6).
 
 ## Потоки данных
 
-`create_*` (service.py:249+) → проверка схемы и поиск дублей (`crm.item.list/get`) → `journal.reserve` (journal.py:63) → при `dry_run=False` и `allow_writes=True` — единственный `crm.item.add` (service.py:434) → `created`/`existing`; потерянный ответ → `uncertain`, разблокировка — ручной `resolve`. Чтение (`get_workday`, `list_*`) — только read-методы с ретраями (client.py:59).
+`create_*` (service.py:247+) → проверка схемы и поиск дублей (`crm.item.list/get`) → `journal.reserve` (journal.py:63) → при `dry_run=False` и `allow_writes=True` — единственный `crm.item.add` (service.py:390) → `created`/`existing`; потерянный ответ → `uncertain`, разблокировка — ручной `resolve`. Чтение (`get_workday`, `list_*`) — только read-методы с ретраями (client.py:59).
 
 ## Внешние зависимости и контракты
 
@@ -28,7 +28,7 @@
 ## Инварианты
 
 - `crm.item.add` — один запрос на операцию (client.py:59,434); повтор возвращает `existing` или блокируется как `uncertain`.
-- Запись требует одновременно `allow_writes=True` и `dry_run=False` (config.py:57; service.py:249).
+- Запись требует одновременно `allow_writes=True` и `dry_run=False` (config.py:57; service.py:366).
 - `xmlId` детерминирован: портал + пользователь + параметры (service.py:91).
 - Секрет вебхука не попадает в логи и тексты ошибок (client.py:19; errors.py:6).
 

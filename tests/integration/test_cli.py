@@ -100,7 +100,6 @@ def test_read_commands(
 
 
 @pytest.mark.parametrize("apply", [False, True])
-@pytest.mark.parametrize("kind", ["workday", "entry"])
 def test_other_create_commands(
     cli_context: Path,
     portal: Portal,
@@ -108,27 +107,22 @@ def test_other_create_commands(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
     apply: bool,
-    kind: str,
 ) -> None:
-    arguments = (
-        ["workday", "--date", "2026-10-12", "--from", "09:00", "--to", "18:00"]
-        if kind == "workday"
-        else [
-            "entry",
-            "--date",
-            "2026-10-05",
-            "--contract-type",
-            "1298",
-            "--contract-id",
-            "123",
-            "--description",
-            "Task",
-            "--hours",
-            "7",
-            "--minutes",
-            "30",
-        ]
-    )
+    arguments = [
+        "entry",
+        "--date",
+        "2026-10-05",
+        "--contract-type",
+        "1298",
+        "--contract-id",
+        "123",
+        "--description",
+        "Task",
+        "--hours",
+        "7",
+        "--minutes",
+        "30",
+    ]
     monkeypatch.setattr(
         sys,
         "argv",
@@ -145,7 +139,7 @@ def test_other_create_commands(
     assert cli.main() == 0
     result = json.loads(capsys.readouterr().out)
     assert result["status"] == ("created" if apply else "preview")
-    assert result["kind"] == ("workday" if kind == "workday" else "time_entry")
+    assert result["kind"] == "time_entry"
     assert len(portal.adds) == int(apply)
 
 

@@ -36,10 +36,6 @@ class DayInterval(APIModel):
         return self
 
 
-class WorkdayCreate(DayInterval):
-    """Create a manual regular workday, marked with source 'Другое'."""
-
-
 class RemoteWorkCreate(DayInterval):
     """Create remote work; Bitrix robots manage the associated workday."""
 
@@ -109,7 +105,7 @@ class OperationResult(APIModel):
     """Preview or apply outcome, including exact REST fields and reconciliation ID."""
 
     status: Literal["preview", "created", "existing", "recovered"]
-    kind: Literal["workday", "time_entry", "remote_work"]
+    kind: Literal["time_entry", "remote_work"]
     operation_id: str
     entity_type_id: int
     item_id: int | None = None

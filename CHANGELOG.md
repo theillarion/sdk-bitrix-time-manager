@@ -24,6 +24,14 @@
   `code style: ruff` и `typing: mypy strict`; итоговый набор:
   release, python, license, stars, tests.
 
+### Removed
+
+- Ручное создание рабочего дня: модель `WorkdayCreate`, метод
+  `TimeManager.create_workday`, CLI-команда `bitrix-time workday` и значение
+  `kind="workday"` в `OperationResult`. Рабочий день создаётся порталом
+  автоматически (проход СКУД или робот удалённого дня); чтение дня
+  (`get_workday`/`day`) сохранено. Breaking change до 1.0.0.
+
 ## [0.1.1] - 2026-10-22
 
 ### Added

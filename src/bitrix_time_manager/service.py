@@ -27,10 +27,9 @@ from bitrix_time_manager.models import (
     RemoteWorkCreate,
     TimeEntryCreate,
     Workday,
-    WorkdayCreate,
 )
 
-Kind = Literal["workday", "time_entry", "remote_work"]
+Kind = Literal["time_entry", "remote_work"]
 
 
 class TimeManager:
@@ -245,32 +244,6 @@ class TimeManager:
             ItemSummary(id=int(item["id"]), title=str(item["title"]), entity_type_id=entity_type_id) for item in items
         ]
 
-    async def create_workday(
-        self, spec: WorkdayCreate, *, dry_run: bool = True, idempotency_key: str | None = None
-    ) -> OperationResult:
-        """Preview/create a regular manual day. A differing existing day is a conflict."""
-        s = self.schema
-        await self._check_schema(s.day_type)
-        fields = {
-            "categoryId": s.day_category,
-            s.day_date: spec.day.isoformat(),
-            s.day_start: self._stamp(spec),
-            s.day_end: self._stamp(spec, end=True),
-            s.day_employee: self.settings.user_id,
-            s.day_comment: spec.comment,
-            s.day_source: s.manual_day_source_id,
-            s.day_kind: s.normal_day_kind_id,
-        }
-        plan = self._plan("workday", spec, s.day_type, fields)
-        plan = plan.model_copy(
-            update={
-                "warnings": [
-                    "The manual day is created with source 'Other'; robot behavior requires manual verification."
-                ]
-            }
-        )
-        return await self._finish(plan, spec, dry_run=dry_run, idempotency_key=idempotency_key)
-
     async def create_time_entry(
         self, spec: TimeEntryCreate, *, dry_run: bool = True, idempotency_key: str | None = None
     ) -> OperationResult:
@@ -328,14 +301,6 @@ class TimeManager:
             if not self._core_matches(plan, ours[0]):
                 raise ConflictError("A record for this operation already exists, but its fields changed on the portal.")
             return ours[0]
-        if plan.kind == "workday":
-            workday = await self.get_workday(spec.day)
-            if workday is None:
-                return None
-            existing = await self.client.get_item(s.day_type, workday.id)
-            if self._core_matches(plan, existing):
-                return existing
-            raise ConflictError(f"A workday for {spec.day} already exists with different parameters.")
         if plan.kind == "time_entry":
             for item in await self.list_time_entries(spec.day):
                 if self._core_matches(plan, item):
@@ -362,15 +327,6 @@ class TimeManager:
 
     def _core_matches(self, plan: OperationResult, item: dict[str, Any]) -> bool:
         s = self.schema
-        if plan.kind == "workday":
-            return (
-                str(item.get(s.day_date, ""))[:10] == str(plan.fields[s.day_date])
-                and int(item.get(s.day_employee) or 0) == self.settings.user_id
-                and self._same_stamp(item.get(s.day_start), plan.fields[s.day_start])
-                and self._same_stamp(item.get(s.day_end), plan.fields[s.day_end])
-                and (item.get(s.day_comment) or "") == plan.fields[s.day_comment]
-                and int(item.get(s.day_kind) or 0) == s.normal_day_kind_id
-            )
         if plan.kind == "remote_work":
             return (
                 int(item.get("assignedById") or 0) == self.settings.user_id
@@ -395,7 +351,7 @@ class TimeManager:
                 "status": status,
                 "item_id": item_id,
                 "item_url": self._url(plan.kind, plan.entity_type_id, item_id),
-                "workday_id": item_id if plan.kind == "workday" else int(parent_id) if parent_id else plan.workday_id,
+                "workday_id": int(parent_id) if parent_id else plan.workday_id,
             }
         )
 
