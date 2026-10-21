@@ -1,4 +1,20 @@
-# Bitrix Time-manager — Python API
+<div align="center">
+
+# bitrix-time-manager
+
+Асинхронная Python-библиотека и консольные команды для Time-менеджера
+Bitrix24 через REST-вебхук владельца: все операции ограничены этим сотрудником.
+
+[![release](https://img.shields.io/github/v/release/theillarion/sdk-bitrix-time-manager?include_prereleases&label=release)](https://github.com/theillarion/sdk-bitrix-time-manager/releases)
+[![python](https://img.shields.io/badge/python-%E2%89%A53.11-007ec6)](pyproject.toml)
+[![License: MIT](https://img.shields.io/github/license/theillarion/sdk-bitrix-time-manager)](LICENSE)
+[![tests](https://github.com/theillarion/sdk-bitrix-time-manager/actions/workflows/tests.yml/badge.svg)](https://github.com/theillarion/sdk-bitrix-time-manager/actions/workflows/tests.yml)
+[![code style: ruff](https://img.shields.io/badge/code%20style-ruff-00878F)](https://docs.astral.sh/ruff/)
+[![typing: mypy strict](https://img.shields.io/badge/typing-mypy%20strict-6C757D)](https://mypy-lang.org/)
+
+</div>
+
+---
 
 Асинхронная Python-библиотека и консольные команды для Time-менеджера
 портала Bitrix24. Работает через REST вебхук владельца: все операции
