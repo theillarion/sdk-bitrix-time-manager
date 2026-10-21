@@ -16,6 +16,7 @@
 
 ### Added
 
+- Раздел «Возможности» и содержание в README.md.
 - `AGENTS.md` и роли агентов (`docs/agents/*/ROLE.md`): пайплайн
   planner → implementer → tester → verifier, команды и границы.
 
