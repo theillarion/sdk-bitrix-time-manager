@@ -41,9 +41,7 @@ async def test_readonly_check_date_and_preview(service: TimeManager, portal: Por
     day = await service.get_workday(date(2026, 10, 5))
     assert day and day.id == 123456
     contracts = await service.search_contracts("Пример")
-    assert [(item.id, item.title, item.entity_type_id) for item in contracts] == [
-        (123, "Пример карточки", 1298)
-    ]
+    assert [(item.id, item.title, item.entity_type_id) for item in contracts] == [(123, "Пример карточки", 1298)]
     plan = await service.create_remote_work(remote())
     assert plan.status == "preview" and plan.item_id is None
     assert plan.fields[service.schema.remote_start] == "2026-10-09T09:00:00+03:00"
