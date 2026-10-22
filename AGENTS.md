@@ -11,6 +11,7 @@
 | `pytest -q --cov=bitrix_time_manager --cov-report=term` | все тесты + покрытие по модулям |
 | `pytest -q tests/unit/test_config.py -k invalid_webhook` | один тест: файл + фильтр по имени |
 | `ruff check src tests examples` | линт |
+| `ruff format --check src tests examples` | формат (шаг CI) |
 | `mypy src` | типы (strict) |
 
 ## Boundaries
