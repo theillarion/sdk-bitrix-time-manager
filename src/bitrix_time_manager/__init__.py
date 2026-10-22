@@ -5,7 +5,7 @@ from bitrix_time_manager.config import PortalSchema, Settings
 from bitrix_time_manager.models import ContractRef, OperationResult, RemoteWorkCreate, TimeEntryCreate
 from bitrix_time_manager.service import TimeManager
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
     "BitrixClient",

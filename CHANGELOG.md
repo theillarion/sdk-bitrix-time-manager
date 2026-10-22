@@ -14,6 +14,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-22
+
 ### Added
 
 - Шапка с бейджами в README.md.
@@ -66,6 +68,7 @@
 - Тесты уровней unit/mock/integration, опциональные live-тесты и CI на GitHub Actions.
 - Лицензия MIT.
 
-[Unreleased]: https://github.com/theillarion/sdk-bitrix-time-manager/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/theillarion/sdk-bitrix-time-manager/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/theillarion/sdk-bitrix-time-manager/releases/tag/v0.2.0
 [0.1.1]: https://github.com/theillarion/sdk-bitrix-time-manager/releases/tag/v0.1.1
 [0.1.0]: https://github.com/theillarion/sdk-bitrix-time-manager/releases/tag/v0.1.0
